@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="device-width, initial-scale=1.0" />
+<div class="container">
+    <input class="search-input" type="text" placeholder="Search here..." />
+    <div class="suggestions">
+    </div>
+<div>
+
+
+
+<input type="text" placeholder="Search Song/Artist..." onkeyup ="getValue(this.value)" style="width:150px; padding:5px;">
+
+<div class="output"></div>
+
+<style>
+    ul li{
+        list-style-type:none;
+        margin:0;
+        padding:0;
+    }
+    ul{
+        margin:0;
+        padding:5px;
+        background-color:gray;
+        width:150px;
+        color:white;
+    }
+</style>
+
+<script>
+var result = document.querySelector('.output');
+
+var Arg = {{songs|safe}}
+
+//function to autocomplete
+function autoComplete(Arg, Input) {
+    return Arg.filter(e =>e.toLowerCase().includes(Input.toLowerCase()));
+}
+
+function getValue(val){
+    //checking value if null
+    if(!val){
+        result.innerHTML='';
+        return
+    }
+
+    //calling autcomplete to check from above array
+    var data = autoComplete(Arg,val);
+
+    //appending list data
+    var res = '<ul>';
+    data.forEach(e=>{
+        res += '<li>'+e+'</li>';
+    })
+    res += '</ul>';
+    result.innerHTML = res;
+}
+</script>
+</html>
