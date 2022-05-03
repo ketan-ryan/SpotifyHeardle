@@ -27,7 +27,7 @@ class SpotifyHandler:
             # We can't get all at once, so iterate until we have all liked songs
             results = self.sp.current_user_saved_tracks(offset=i*20)
             if (len(results['items']) == 20):
-                for idx, item in enumerate(results['items']):
+                for item in results['items']:
                     track = item['track']
                     songs.append(f"{track['artists'][0]['name']} - {track['name']}")
                     uris.append(track['uri'])
