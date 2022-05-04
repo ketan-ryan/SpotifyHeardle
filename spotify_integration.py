@@ -16,7 +16,7 @@ class SpotifyHandler:
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope, open_browser=True, redirect_uri='http://example.com', client_id=self.id, client_secret=self.secret))
 
         # Get the user, in the future could store it in a db or find some other way to only pick once per day
-        self.user = self.sp.me()['external_urls']['spotify']
+        #self.user = self.sp.me()['external_urls']['spotify']
 
 
     def get_playlists(self):
