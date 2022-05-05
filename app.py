@@ -7,7 +7,7 @@ import json
 app = Flask(__name__)
 spotify = spotify_integration.SpotifyHandler()
 
-auth = SpotifyOAuth(client_id=spotify.id, client_secret=spotify.secret, redirect_uri='http://localhost:8000/callback', cache_path='.spotifycache', scope='user-library-read')
+auth = SpotifyOAuth(client_id=spotify.id, client_secret=spotify.secret, redirect_uri='http://localhost:8000/callback', cache_path='.cache', scope='user-library-read')
 
 @app.route('/')
 def index():
@@ -31,4 +31,4 @@ def callback():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
