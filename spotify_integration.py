@@ -14,8 +14,8 @@ class SpotifyHandler:
             self.secret = fp.readline().strip()
 
 
-    def init_user(self, token):
-        self.sp = spotipy.Spotify(auth=token)
+    def init_user(self, spotify):
+        self.sp = spotify
 
         # Get the user, in the future could store it in a db or find some other way to only pick once per day
         self.user = self.sp.me()['external_urls']['spotify']
@@ -36,9 +36,6 @@ class SpotifyHandler:
                 i += 1
             else:
                 break
-
-        # for idx, song in enumerate(songs):
-        #     print(song, uris[idx])
 
         return (songs, uris)
 
