@@ -28,11 +28,10 @@ css">
     $("#button").click(function() {
       if(!doneGuessing) {
         guesses++;
-
         if(selectedSong == answer) {
           alert("You have guessed the song!")
           doneGuessing = true;
-        } else {
+        } else if(selectedSong != '') {
           if(guesses < 6)
             alert("Incorrect guess. You have " + (6 - guesses) + " remaining guesses");
           else
