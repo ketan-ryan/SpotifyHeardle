@@ -10,15 +10,52 @@ css">
   $( function() {
 
     var song = {{songs|safe}}
+    var selectedSong = ''
+    var answer = song[Math.floor(Math.random() * song.length)];
+    var guesses = 0;
+    var doneGuessing = false;
 
     $( "#songtag" ).autocomplete({
-      source: song
+      source: function(request, response) {
+        var results = $.ui.autocomplete.filter(song, request.term);
+        response(results.slice(0, 10));
+      },
+      select: function(event, ui) {
+        selectedSong = ui.item.value;
+      }
     });
+
+    $("#button").click(function() {
+      if(!doneGuessing) {
+        guesses++;
+
+        if(selectedSong == answer) {
+          alert("You have guessed the song!")
+          doneGuessing = true;
+        } else {
+          if(guesses < 6)
+            alert("Incorrect guess. You have " + (6 - guesses) + " remaining guesses");
+          else
+            alert("Incorrect guess. The answer was " + answer);
+        }
+
+        if(guesses >= 6)
+          doneGuessing = true;
+      }
+    });
+
+    $(".content .value").html(answer);
   });
 </script>
 
 <div class="ui-widget">
     <h3>Enter Song Title or Artist</h3>
         <input id="songtag">
+
+    <div class="content">
+      Selected song: <span class='value'></span>
+    </div>
+
+    <div id="button"> Submit </div>
 </div>
 </html>
