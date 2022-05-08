@@ -1,3 +1,4 @@
 *.txt
 .cache
+.spotifycache
 __pycache__/
