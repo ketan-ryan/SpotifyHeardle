@@ -23,6 +23,34 @@ css">
   var doneGuessing = false;
   var timeout = 1000;
 
+  function handleGuesses() {
+    guesses++;
+    // Set timeout based on number of guesses used
+    switch(guesses) {
+      case 1:
+        timeout = 2000;
+        break;
+      case 2:
+        timeout = 4000;
+        break;
+      case 3:
+        timeout = 7000;
+        break;
+      case 4:
+        timeout = 11000;
+        break;
+      case 5:
+        timeout = 16000;
+        break;
+      case 6:
+        timeout = -1;
+        break;
+    }
+
+    if(guesses >= 6)
+          doneGuessing = true;
+  }
+
   // JQuery stuff
   $( function() {
 
@@ -40,32 +68,15 @@ css">
     // Submit button
     $("#button").click(function() {
       if(!doneGuessing) {
-        guesses++;
-
-        switch(guesses) {
-          case 1:
-            timeout = 2000;
-            break;
-          case 2:
-            timeout = 4000;
-            break;
-          case 3:
-            timeout = 7000;
-            break;
-          case 4:
-            timeout = 11000;
-            break;
-          case 5:
-            timeout = 16000;
-            break;
-        }
+        handleGuesses()
 
         if(selectedSong == answer) {
           alert("You have guessed the song!")
           doneGuessing = true;
           player.playVideo();
           timeout = -1;
-        } else if(selectedSong != '') {
+        }
+        else if(selectedSong != '') {
           if(guesses < 6)
             alert("Incorrect guess. You have " + (6 - guesses) + " remaining guesses");
           else {
@@ -74,14 +85,25 @@ css">
             timeout = -1;
           }
         }
-
-        if(guesses >= 6)
-          doneGuessing = true;
       }
     });
 
+    $("#skip-button").click(function() {
+      if(!doneGuessing) {
+        handleGuesses();
+        $(".skip-button .value").html((guesses.valueOf() + 1))
+        onPlayerStateChange(YT.PlayerState.PLAYING);
+      }
+      if(guesses >= 6) {
+        timeout = -1;
+      }
+      player.playVideo();
+      console.log(guesses);
+    })
+
     // Display answer in page
     $(".content .value").html(answer);
+    $(".skip-button .value").html((guesses.valueOf() + 1))
     // Messing around with spotify player
     $(".player").attr("src", "https://open.spotify.com/embed/track/" + random_selection + "#0:00?utm_source=generator").hide();
   });
@@ -97,8 +119,8 @@ css">
   var player;
   function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
-      height: '200',
-      width: '200',
+      height: '320',
+      width: '640',
       videoId: youtube_url,
       playerVars: {
         'playsinline': 1
@@ -108,12 +130,12 @@ css">
         'onStateChange': onPlayerStateChange
       }
     });
-    document.getElementById('player').style.display = 'none';
+    // document.getElementById('player').style.display = 'none';
   }
 
   // 4. The API will call this function when the video player is ready.
   function onPlayerReady(event) {
-    event.target.playVideo();
+    console.log('Player loaded')
   }
 
   // 5. The API calls this function when the player's state changes.
@@ -141,9 +163,11 @@ css">
 
     <div id="button"> Submit </div>
 
-    <!-- <iframe class="player" style="border-radius:12px" width="40%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe> -->
-
     <div id="player"></div>
+
+    <div class="skip-button" id="skip-button">
+      SKIP (+ <span class='value'></span> s)
+    </div>
 </div>
 </body>
 </html>

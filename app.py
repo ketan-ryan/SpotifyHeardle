@@ -44,7 +44,7 @@ def index():
         random_song = songs[position]
         random_uri = uris[position]
         # Get the id of the first video result, stripping off the string "/watch?v="
-        random_youtube = json.loads(YoutubeSearch(random_song, max_results=10).to_json())['videos'][0]['url_suffix'][9:]
+        random_youtube = json.loads(YoutubeSearch(random_song + " lyrics", max_results=10).to_json())['videos'][0]['url_suffix'][9:]
 
         return render_template("index.html",
             song=json.dumps(random_song), songs=json.dumps(songs), uri=json.dumps(random_uri), youtube=json.dumps(random_youtube))
