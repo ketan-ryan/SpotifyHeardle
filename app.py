@@ -1,10 +1,11 @@
 from flask import Flask, render_template, redirect, request, session
+from youtube_search import YoutubeSearch
 import spotify_integration
+from random import randint
 import spotipy
 import secrets
 import time
 import json
-
 
 app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(16)
@@ -23,7 +24,6 @@ SCOPE = 'user-library-read'
 # Set this to True for testing but you probaly want it set to False in production.
 SHOW_DIALOG = True
 
-
 # authorization-code-flow Step 1. Have your application request authorization;
 # the user logs in and authorizes access
 @app.route("/")
@@ -37,7 +37,19 @@ def verify():
 @app.route("/index")
 def index():
     setup_spotify()
-    return render_template("index.html", songs=json.dumps(spotify.get_playlists()[0]))
+    try:
+        songs = spotify.get_playlists()[0]
+        uris = spotify.get_playlists()[1]
+        position = randint(0, len(songs))
+        random_song = songs[position]
+        random_uri = uris[position]
+        # Get the id of the first video result, stripping off the string "/watch?v="
+        random_youtube = json.loads(YoutubeSearch(random_song, max_results=10).to_json())['videos'][0]['url_suffix'][9:]
+
+        return render_template("index.html",
+            song=json.dumps(random_song), songs=json.dumps(songs), uri=json.dumps(random_uri), youtube=json.dumps(random_youtube))
+    except AttributeError:
+        return redirect('/')
 
 
 # authorization-code-flow Step 2.

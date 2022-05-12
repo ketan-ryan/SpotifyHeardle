@@ -5,19 +5,26 @@
 css">
 <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
 <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+<script src="https://open.spotify.com/embed-podcast/iframe-api/v1" async></script>
 
 <script>
   $( function() {
 
-    var song = {{songs|safe}}
     var selectedSong = ''
-    var answer = song[Math.floor(Math.random() * song.length)];
+
+    var songs = {{songs|safe}}
+    var answer = {{song|safe}}
+    var random_selection = {{uri|safe}}
+    var youtube_url = {{youtube|safe}}
+
+    console.log(youtube_url)
+
     var guesses = 0;
     var doneGuessing = false;
 
     $( "#songtag" ).autocomplete({
       source: function(request, response) {
-        var results = $.ui.autocomplete.filter(song, request.term);
+        var results = $.ui.autocomplete.filter(songs, request.term);
         response(results.slice(0, 10));
       },
       select: function(event, ui) {
@@ -44,6 +51,10 @@ css">
     });
 
     $(".content .value").html(answer);
+
+    $(".player").attr("src", "https://open.spotify.com/embed/track/" + random_selection + "#0:00?utm_source=generator").hide();
+
+    $(".youtube_player").attr("src", "https://www.youtube.com/embed/" + youtube_url)
   });
 </script>
 
@@ -56,5 +67,9 @@ css">
     </div>
 
     <div id="button"> Submit </div>
+
+    <iframe class="player" style="border-radius:12px" width="40%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+
+    <iframe class="youtube_player" width="200" height="200" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 </div>
 </html>
