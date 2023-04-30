@@ -1,10 +1,9 @@
 from flask import Flask, render_template, redirect, request, session
 from youtube_search import YoutubeSearch
+from flask_socketio import SocketIO
 from requests import ReadTimeout
-from flask_socketio import SocketIO, emit
 import spotify_integration
 from random import randint
-from queue import Queue
 import subprocess
 import threading
 import spotipy
@@ -40,12 +39,6 @@ def verify():
     sp_oauth = spotipy.oauth2.SpotifyOAuth(client_id = CLI_ID, client_secret = CLI_SEC, redirect_uri = REDIRECT_URI, scope = SCOPE, open_browser=True, cache_path='.spotifycache')
     auth_url = sp_oauth.get_authorize_url()
     return redirect(auth_url)
-
-
-@app.route('/player_loaded')
-def player_loaded():
-    global player_loaded_flag
-    return str(player_loaded_flag)
 
 
 def download_song(song_name: str, youtube_url: str) -> bool:
