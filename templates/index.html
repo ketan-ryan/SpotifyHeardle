@@ -1,173 +1,201 @@
 <!DOCTYPE html>
 <html>
   <body>
-<meta name="viewport" content="device-width, initial-scale=1.0" />
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.
-css">
-<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
-<script src="https://code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
-<script src="https://open.spotify.com/embed-podcast/iframe-api/v1" async></script>
+    <meta name="viewport" content="device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 
-<script>
-  // Set up vars
-  var selectedSong = ''
+    <script async>
+        // Set up vars
+        var selectedSong = ''
 
-  var songs = {{songs|safe}}
-  var answer = {{song|safe}}
-  var random_selection = {{uri|safe}}
-  var youtube_url = {{youtube|safe}}
+        var songs = {{songs|safe}}
+        var answer = {{song|safe}}
+        var random_selection = {{uri|safe}}
+        var youtube_url = {{youtube|safe}}
 
-  console.log(youtube_url)
+        var guesses = 0;
+        var doneGuessing = false;
+        var timeout = 1000;
+        var timeoutId = null;
 
-  var guesses = 0;
-  var doneGuessing = false;
-  var timeout = 1000;
+        var maxTimeout = -1;
+        var current = 0;
+        var fix = false;
+        var loaded = false;
+        var loaded16 = false;
 
-  function handleGuesses() {
-    guesses++;
-    // Set timeout based on number of guesses used
-    switch(guesses) {
-      case 1:
-        timeout = 2000;
-        break;
-      case 2:
-        timeout = 4000;
-        break;
-      case 3:
-        timeout = 7000;
-        break;
-      case 4:
-        timeout = 11000;
-        break;
-      case 5:
-        timeout = 16000;
-        break;
-      case 6:
-        timeout = -1;
-        break;
-    }
+        function handleGuesses() {
+            guesses++;
 
-    if(guesses >= 6)
-          doneGuessing = true;
-  }
+            if(timeoutId != null)
+                clearTimeout(timeoutId);
 
-  // JQuery stuff
-  $( function() {
+            // Set timeout based on number of guesses used
+            switch(guesses) {
+                case 1:
+                    timeout = 2500;
+                    break;
+                case 2:
+                    timeout = 4000;
+                    break;
+                case 3:
+                    timeout = 7000;
+                    break;
+                case 4:
+                    timeout = 11000;
+                    break;
+                case 5:
+                    timeout = 16000;
+                    break;
+                case 6:
+                    timeout = maxTimeout;
+                    break;
+            }
 
-    // Autocomplete box - set to only display 10 results
-    $( "#songtag" ).autocomplete({
-      source: function(request, response) {
-        var results = $.ui.autocomplete.filter(songs, request.term);
-        response(results.slice(0, 10));
-      },
-      select: function(event, ui) {
-        selectedSong = ui.item.value;
-      }
-    });
+            if(guesses >= 6)
+                doneGuessing = true;
 
-    // Submit button
-    $("#button").click(function() {
-      if(!doneGuessing) {
-        handleGuesses()
-
-        if(selectedSong == answer) {
-          alert("You have guessed the song!")
-          doneGuessing = true;
-          player.playVideo();
-          timeout = -1;
+            timeoutId = setTimeout(stopVideo, timeout);
+            console.log(timeout);
         }
-        else if(selectedSong != '') {
-          if(guesses < 6)
-            alert("Incorrect guess. You have " + (6 - guesses) + " remaining guesses");
-          else {
-            alert("Incorrect guess. The answer was " + answer);
-            player.playVideo();
-            timeout = -1;
-          }
+
+        function displaySkip() {
+            if(guesses + 1 < 6)
+                $(".skip-button .value").html((guesses.valueOf() + 1))
+            else if(guesses + 1 == 6)
+                $(".skip-button").html("SKIP");
+            else if(guesses + 1 >= 6)
+                $(".skip-button").html("SKIPPED");
         }
-      }
-    });
 
-    $("#skip-button").click(function() {
-      if(!doneGuessing) {
-        handleGuesses();
-        $(".skip-button .value").html((guesses.valueOf() + 1))
-        onPlayerStateChange(YT.PlayerState.PLAYING);
-      }
-      if(guesses >= 6) {
-        timeout = -1;
-      }
-      player.playVideo();
-      console.log(guesses);
-    })
+        // JQuery stuff
+        $( function() {
+            // Autocomplete box - set to only display 10 results
+            $( "#songtag" ).autocomplete({
+            source: function(request, response) {
+                var results = $.ui.autocomplete.filter(songs, request.term);
+                response(results.slice(0, 10));
+            },
+            select: function(event, ui) {
+                selectedSong = ui.item.value;
+            }
+            })
 
-    // Display answer in page
-    $(".content .value").html(answer);
-    $(".skip-button .value").html((guesses.valueOf() + 1))
-    // Messing around with spotify player
-    $(".player").attr("src", "https://open.spotify.com/embed/track/" + random_selection + "#0:00?utm_source=generator").hide();
-  });
-  // 2. This code loads the IFrame Player API code asynchronously.
-  var tag = document.createElement('script');
+            // Submit button
+            $("#button").click(function() {
+                if(doneGuessing) return;
 
-  tag.src = "https://www.youtube.com/iframe_api";
-  var firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                handleGuesses();
+                displaySkip();
 
-  // 3. This function creates an <iframe> (and YouTube player)
-  //    after the API code downloads.
-  var player;
-  function onYouTubeIframeAPIReady() {
-    player = new YT.Player('player', {
-      height: '320',
-      width: '640',
-      videoId: youtube_url,
-      playerVars: {
-        'playsinline': 1
-      },
-      events: {
-        'onReady': onPlayerReady,
-        'onStateChange': onPlayerStateChange
-      }
-    });
-    // document.getElementById('player').style.display = 'none';
-  }
+                if (timeoutId != null)
+                    clearTimeout(timeoutId);
 
-  // 4. The API will call this function when the video player is ready.
-  function onPlayerReady(event) {
-    console.log('Player loaded')
-  }
+                if(selectedSong == answer) {
+                    alert("You have guessed the song!")
+                    doneGuessing = true;
+                    player.playVideo();
+                    timeout = maxTimeout;
+                }
+                else if(selectedSong != '') {
+                    if(guesses < 6)
+                        alert("Incorrect guess. You have " + (6 - guesses) + " remaining guesses");
+                    else {
+                        alert("Incorrect guess. The answer was " + answer);
+                        player.playVideo();
+                        timeout = maxTimeout;
+                    }
+                }
+            });
 
-  // 5. The API calls this function when the player's state changes.
-  //    The function indicates that when playing a video (state=1),
-  //    the player should play for six seconds and then stop.
-  function onPlayerStateChange(event) {
-    if (event.data == YT.PlayerState.PLAYING && timeout != -1) {
-      setTimeout(stopVideo, timeout);
-    }
-  }
+            $("#skip-button").click(function() {
+                if(doneGuessing) return;
 
-  function stopVideo() {
-    player.stopVideo();
-  }
+                handleGuesses();
+                displaySkip();
+                console.log(player.getCurrentTime());
 
-</script>
+                // if (timeoutId != null)
+                //  clearTimeout(timeoutId);
 
-<div class="ui-widget">
+                //player.playVideo();
+            })
+
+            // Display answer in page
+            $(".content .value").html(answer);
+            displaySkip();
+        });
+
+        function test() {
+            if(player.getPlayerState() == YT.PlayerState.PLAYING) {
+                console.log(timeout, loaded16)
+                if(!loaded16 && timeout == 16000) {
+                    console.log("loaded")
+                    player.seekTo(15, true);
+                    loaded16 = true;
+                    setTimeout(function(){player.seekTo(0)}, 10);
+                }
+                if(player.getCurrentTime() != 0) {
+                    current = player.getCurrentTime();
+                }
+                if(fix) {
+                    player.seekTo(current);
+                    fix = false;
+                }
+                var ct = Math.round(current * 10) / 10
+                console.log(ct, timeout / 1000);
+                if(ct == timeout / 1000) {
+                    player.pauseVideo();
+                    player.seekTo(0, true);
+                }
+            }
+        }
+
+        function stopVideo() {
+            player.stopVideo();
+        }
+
+    </script>
     <h3>Enter Song Title or Artist</h3>
+    <div class="ui-widget" .ui-helper-hidden-accessible { position: absolute; left: -9999px; }>
         <input id="songtag">
-
-    <div class="content">
-      Selected song: <span class='value'></span>
     </div>
-
+    <div class="content">Selected song: <span class='value'></span></div>
     <div id="button"> Submit </div>
 
-    <div id="player"></div>
+    <script type="text/javascript" charset="utf-8">
+        var socket = io();
+        console.log("Initialized");
+        socket.on('connect', function() {
+            console.log("Connected!");
+        });
+        socket.on('loading', function() {
+            console.log("Loaded! dataless");
+            console.log(answer);
+
+            let artist = answer.substring(0, answer.indexOf(" - "));
+            let song = answer.substring(answer.indexOf(" - ") + 3);
+            path = '/downloads/' + artist + '/' + song + '.mp3';
+            console.log(path);
+
+            $('#loading').hide();
+            $('#player').show();
+            var audioPlayer = document.getElementById('audio-player');
+            audioPlayer.src = path;
+            audioPlayer.load();
+        });
+    </script>
+    <div id="loading">Loading player...</div>
+    <div id="player" style="display: none;">
+        Player loaded!
+        <audio controls id="audio-player"></audio>
+    </div>
 
     <div class="skip-button" id="skip-button">
-      SKIP (+ <span class='value'></span> s)
+        SKIP (+ <span class='value'></span> s)
     </div>
-</div>
-</body>
+    </body>
 </html>

@@ -1,5 +1,5 @@
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+import threading
+
 
 class SpotifyHandler:
     scope = ['user-library-read', 'streaming', 'user-read-birthdate', 'user-read-email', 'user-read-private']

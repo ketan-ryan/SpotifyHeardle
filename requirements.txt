@@ -1,3 +1,5 @@
 flask
+yt-dlp
 spotipy
+flask-socketio
 youtube-search
