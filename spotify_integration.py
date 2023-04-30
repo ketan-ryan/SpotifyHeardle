@@ -1,8 +1,8 @@
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+import threading
+
 
 class SpotifyHandler:
-    scope = 'user-library-read'
+    scope = ['user-library-read', 'streaming', 'user-read-birthdate', 'user-read-email', 'user-read-private']
     id = ''
     secret = ''
     sp = None
@@ -32,7 +32,8 @@ class SpotifyHandler:
                 for item in results['items']:
                     track = item['track']
                     songs.append(f"{track['artists'][0]['name']} - {track['name']}")
-                    uris.append(track['uri'])
+                    uris.append(track['id'])
+                    # print(track)
                 i += 1
             else:
                 break

@@ -1,4 +1,5 @@
-*.txt
+secrets.txt
 .cache
 .spotifycache
 __pycache__/
+downloads/
