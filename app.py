@@ -24,7 +24,7 @@ CLI_SEC = spotify.secret
 API_BASE = 'https://accounts.spotify.com'
 
 # Make sure you add this to Redirect URIs in the setting of the application dashboard
-REDIRECT_URI = 'http://127.0.0.1:8080/callback'
+REDIRECT_URI = 'http://10.0.0.33:8080/callback'
 
 SCOPE = 'user-library-read'
 
@@ -52,7 +52,7 @@ def download_song(song_name: str, youtube_url: str) -> bool:
     path = pathlib.Path(f'downloads/{artist}/{song}.mp3')
 
     if not pathlib.Path.is_file(path):
-        command = f'yt-dlp -v -f bestaudio "{youtube_url}" --external-downloader ffmpeg --external-downloader-args "-ss 00:00 -to 00:16" -o "downloads/{artist}/{song}.mp3"'
+        command = f'yt-dlp -v -f bestaudio "{youtube_url}" --downloader ffmpeg --external-downloader-args "-ss 00:00 -to 00:16" -o "downloads/{artist}/{song}.mp3"'
 
         args = shlex.split(command)
 
@@ -140,10 +140,16 @@ def get_token(session):
         token_info = sp_oauth.refresh_access_token(session.get('token_info').get('refresh_token'))
 
     token_valid = True
+
+    # Create a new SpotifyHandler object for the user
+    sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
+    user_info = sp.current_user()
+    session['user_id'] = user_info['id']
+
     return token_info, token_valid
 
 
 if __name__ == '__main__':
     socketio.run(app,
-        # host='0.0.0.0',
+        host='0.0.0.0',
             port=8080, debug=True)

@@ -2,10 +2,17 @@
 <html>
   <body>
     <meta name="viewport" content="device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"/>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"/>
     <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <style>
+        .ui-autocomplete {
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+    </style>
 
     <script async>
         // Set up vars
@@ -21,7 +28,7 @@
         var timeout = 1000;
         var timeoutId = null;
 
-        var maxTimeout = -1;
+        var maxTimeout = 170000;
         var current = 0;
         var fix = false;
         var loaded = false;
@@ -67,8 +74,10 @@
                 $(".skip-button .value").html((guesses.valueOf() + 1))
             else if(guesses + 1 == 6)
                 $(".skip-button").html("SKIP");
-            else if(guesses + 1 >= 6)
+            else {
                 $(".skip-button").html("SKIPPED");
+                alert("The answer was " + answer);
+            }
         }
 
         // JQuery stuff
@@ -77,7 +86,8 @@
             $( "#songtag" ).autocomplete({
             source: function(request, response) {
                 var results = $.ui.autocomplete.filter(songs, request.term);
-                response(results.slice(0, 10));
+                response(results);
+               // response(results.slice(0, 10));
             },
             select: function(event, ui) {
                 selectedSong = ui.item.value;
@@ -97,17 +107,18 @@
                 if(selectedSong == answer) {
                     alert("You have guessed the song!")
                     doneGuessing = true;
-                    player.playVideo();
                     timeout = maxTimeout;
+
                 }
                 else if(selectedSong != '') {
                     if(guesses < 6)
                         alert("Incorrect guess. You have " + (6 - guesses) + " remaining guesses");
                     else {
                         alert("Incorrect guess. The answer was " + answer);
-                        player.playVideo();
+                        player.play();
                         timeout = maxTimeout;
                     }
+                    console.log(guesses);
                 }
             });
 
@@ -125,7 +136,7 @@
             })
 
             // Display answer in page
-            $(".content .value").html(answer);
+            // $(".content .value").html(answer);
             displaySkip();
         });
 
@@ -168,29 +179,29 @@
 
     <script type="text/javascript" charset="utf-8">
         var socket = io();
-        console.log("Initialized");
-        socket.on('connect', function() {
-            console.log("Connected!");
-        });
         socket.on('loading', function() {
-            console.log("Loaded! dataless");
             console.log(answer);
 
             let artist = answer.substring(0, answer.indexOf(" - "));
             let song = answer.substring(answer.indexOf(" - ") + 3);
             path = '/downloads/' + artist + '/' + song + '.mp3';
-            console.log(path);
 
             $('#loading').hide();
             $('#player').show();
             var audioPlayer = document.getElementById('audio-player');
             audioPlayer.src = path;
             audioPlayer.load();
+
+            audioPlayer.addEventListener('timeupdate', function() {
+                if(audioPlayer.currentTime >= timeout / 1000) {
+                    audioPlayer.pause();
+                    audioPlayer.currentTime = 0;
+                }
+            });
         });
     </script>
     <div id="loading">Loading player...</div>
     <div id="player" style="display: none;">
-        Player loaded!
         <audio controls id="audio-player"></audio>
     </div>
 

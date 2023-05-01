@@ -3,3 +3,4 @@ secrets.txt
 .spotifycache
 __pycache__/
 downloads/
+.flask_session/

@@ -39,6 +39,3 @@ class SpotifyHandler:
                 break
 
         return (songs, uris)
-
-
-    # https://developer.spotify.com/documentation/embeds/guides/using-the-iframe-api/
