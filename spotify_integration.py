@@ -1,11 +1,10 @@
-import threading
+from spotipy import Spotify
 
 
 class SpotifyHandler:
-    scope = ['user-library-read', 'streaming', 'user-read-birthdate', 'user-read-email', 'user-read-private']
     id = ''
     secret = ''
-    sp = None
+    sp:Spotify = None
 
 
     def __init__(self):
